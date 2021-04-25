@@ -26,13 +26,13 @@ plot1 = go.Figure(
             name="Open",
             x=df_wbs_count_open["WBS element"],
             y=df_wbs_count_open["Count"],
-            marker_color='indianred'
+            marker_color='#ffcc29'
         ),
         go.Bar(
             name="Closed",
             x=df_wbs_count_closed["WBS element"],
             y=df_wbs_count_closed["Count"],
-            marker_color='green'
+            marker_color='#387c6d'
         )
     ],
 )
@@ -63,7 +63,7 @@ pie = go.Figure(
 )
 
 pie.update_layout(
-    title="Percentage of ",
+    title="Percentage of Service Orders per WBS Element",
 )
 
 # TABLE for closed WBS Elements
@@ -127,3 +127,94 @@ table_closed.update_layout(
     title="Closed Service Orders",
     height=1000,
 )
+
+
+# Total Planned Cost vs Total Actual Cost
+df_total_pld_cost = df_iw73.groupby("WBS element").TotalPlnndCosts.sum().reset_index(name="Total Planned Cost")
+
+df_total_actual_cost = df_iw73.groupby("WBS element").sum().reset_index()
+df_total_actual_cost = df_total_actual_cost.loc[:, ["WBS element", "Total act.costs"]]
+
+cost_plot = go.Figure(
+    data=[
+        go.Bar(
+            name="Planned Cost",
+            x=df_total_pld_cost["WBS element"],
+            y=df_total_pld_cost["Total Planned Cost"],
+            marker_color='#f58634'
+        ),
+        go.Bar(
+            name="Actual Cost",
+            x=df_total_actual_cost["WBS element"],
+            y=df_total_actual_cost["Total act.costs"],
+            marker_color='#ce1212'
+        )
+    ],
+)
+
+cost_plot.update_layout(
+    barmode='group',
+    title="Total Actual vs Planned Cost per WBS",
+    yaxis=dict(
+        title="Cost (AUD)"
+    ),
+    xaxis=dict(
+        title="WBS Element"
+    )
+)
+
+# Service Order per Work Centre
+df_workcentre = df_iw73.groupby("Main WorkCtr").size().reset_index(name="Count")
+
+plot_wb_so = go.Figure(
+    data=[
+        go.Bar(
+            name="Total Actual Cost Per Work Centre",
+            x=df_workcentre["Main WorkCtr"],
+            y=df_workcentre["Count"],
+            marker_color='#f58634'
+        ),
+    ],
+)
+
+plot_wb_so.update_layout(
+    title="Number of Service Orders Created Per Work Centre",
+    yaxis=dict(
+        title="Number of Service Order"
+    ),
+    xaxis=dict(
+        title="Work Centre"
+    )
+)
+
+# Cost Per Work Centre per WBS
+df_wc_wbs = df_iw73.groupby(["Main WorkCtr", "WBS element"]).sum().reset_index()
+df_wc_wbs = df_wc_wbs.loc[:, ["Main WorkCtr", "WBS element", "Total act.costs"]]
+
+cost_plot_wc_wbs = go.Figure(
+    data=[
+        go.Bar(
+            name="Total Actual Cost Per Work Centre",
+            x=df_wc_wbs["Main WorkCtr"],
+            y=df_wc_wbs["Total act.costs"],
+            hovertext=df_wc_wbs["WBS element"]
+        ),
+    ],
+)
+
+cost_plot_wc_wbs.update_layout(
+    barmode='stack',
+    title="Total Actual Cost per Work Centre (with WBS)",
+    yaxis=dict(
+        title="Total Actual Cost (AUD)"
+    ),
+    xaxis=dict(
+        title="Work Centre"
+    )
+)
+
+# Service Orders Over Time
+df_created = df_iw73.groupby("Created on").size().reset_index(name="Count")
+print(df_created)
+
+time_plot = px.line(df_created, x="Created on", y="Count")
