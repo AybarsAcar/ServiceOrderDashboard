@@ -1,6 +1,10 @@
 import pandas as pd
 import numpy as np
 
+#
+# Parser for the tables
+#
+
 class ServiceOrderDataParser:
 
   def __init__(self):
